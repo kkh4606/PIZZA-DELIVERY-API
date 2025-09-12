@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, status, Depends
 from sqlalchemy.orm import Session
-from .. import database, models, util, oauth2
+from .. import database, util, oauth2
+from app.models import user as model_user
 from app.schemas import accessToken, user
 from fastapi.security import OAuth2PasswordRequestForm
 
@@ -16,14 +17,14 @@ async def sign_up(user: user.SignUpModel, db: Session = Depends(database.get_db)
     hashed_password = util.get_password_hash(user.password)
     user.password = hashed_password
     new_user_exists = (
-        db.query(models.User).filter(models.User.email == user.email).first()
+        db.query(model_user.User).filter(model_user.User.email == user.email).first()
     )
 
     if new_user_exists:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, detail=f"{user.email} already exists"
         )
-    new_user = models.User(**user.model_dump())
+    new_user = model_user.User(**user.model_dump())
 
     db.add(new_user)
     db.commit()
@@ -38,8 +39,8 @@ async def login(
 ):
 
     user = (
-        db.query(models.User)
-        .filter(models.User.email == user_credentials.username)
+        db.query(model_user.User)
+        .filter(model_user.User.email == user_credentials.username)
         .first()
     )
 

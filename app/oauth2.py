@@ -3,7 +3,8 @@ from datetime import datetime, timedelta
 from jose import jwt, JWTError
 from fastapi import HTTPException, status, Depends
 from sqlalchemy.orm import Session
-from . import database, models
+from . import database
+from app.models import user as model_user
 from app.schemas import accessToken
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
@@ -51,5 +52,9 @@ def get_current_user(
     )
 
     token = verify_access_token(token, credentials_exceptions)  # type:ignore
-    user = db.query(models.User).filter(models.User.email == token.username).first()
+    user = (
+        db.query(model_user.User)
+        .filter(model_user.User.email == token.username)
+        .first()
+    )
     return user
